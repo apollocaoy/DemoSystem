@@ -2,6 +2,8 @@ import redis
 import pika
 import json
 
+print(' [*] Initialising command consumer')
+
 redisConn = redis.Redis('192.168.99.100', 6379)
 
 rabbitConn = pika.BlockingConnection(pika.ConnectionParameters('192.168.99.100', 5672, '/', credentials=pika.PlainCredentials('user', 'password')))
