@@ -1,0 +1,70 @@
+<html>
+	<head>
+		<script src="http://cdnjs.cloudflare.com/ajax/libs/sockjs-client/0.3.4/sockjs.min.js"></script>
+		<script src="http://cdnjs.cloudflare.com/ajax/libs/stomp.js/2.3.3/stomp.min.js"></script>
+		<script src="http://cdnjs.cloudflare.com/ajax/libs/jquery/1.11.1/jquery.min.js"></script>
+		<script>
+		
+			// Replace with your hostname
+			var ws = new SockJS("http://192.168.99.100:15674/stomp");
+			
+			var client = Stomp.over(ws);
+
+			// RabbitMQ SockJS does not support heartbeats so disable them
+			client.heartbeat.outgoing = 0;
+			client.heartbeat.incoming = 0;
+
+			client.debug = onDebug;
+
+			// Make sure the user has limited access rights
+			client.connect("user", "password", onConnect, onError, "/");
+
+			function onConnect() {
+			
+				var id = client.subscribe("/exchange/event.saveKeyValue", function(d) {
+				
+					var node = document.createTextNode("event.saveKeyValue: " + d.body + "\n");
+					
+					document.getElementById("chat").appendChild(node);
+					
+				});
+				
+			}
+
+			function save() {
+				
+				var key = document.getElementById("key").value;
+				
+				var value = document.getElementById("value").value;
+			  
+				$.get("http://192.168.99.100/" + key + "/" + value, function(data) {
+					console.log("DATA SAVED: " + data);
+				});
+				
+				//$.post("http://192.168.99.100/", $("#form").serialize(), function(data) {
+				//	alert("data");
+				//});
+				
+			}
+
+			function onError(e) {
+				console.log("STOMP ERROR", e);
+			}
+
+			function onDebug(m) {
+				console.log("STOMP DEBUG", m);
+			}	
+
+		</script>
+	</head>
+	<body>
+		<div>			
+			<label>key: <input id="key" /></label>
+			<label>value: <input id="value" /></label>
+			<button onclick="save()">save</button>			
+		</div>
+		<div>
+			<label>events: <pre id="chat"></pre></label>
+		</div>
+	</body>
+</html>
